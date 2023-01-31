@@ -1,5 +1,6 @@
 # What's new in TensorFlow 2.x
 
+
 The following are all the changes coming in TensorFlow 2.x. Let's have a closer look at them:
 
 * Eager Execution / tf.function
@@ -52,6 +53,31 @@ For now, just follow along the video and code exercise below to get an idea how 
 2. [Code yourself](https://github.com/romeokienzler/TensorFlow/blob/master/notebooks/tf2.keras.ipynb) 
 
 
+Latest version TensorFlow 2.11.0
+
+Breaking Changes
+
+The tf.keras.optimizers.Optimizer base class now points to the new Keras optimizer, while the old optimizers have been moved to the tf.keras.optimizers.legacy namespace.
+
+If you find your workflow failing due to this change, you may be facing one of the following issues:
+
+Checkpoint loading failure. The new optimizer handles optimizer state differently from the old optimizer, which simplifies the logic of checkpoint saving/loading, but at the cost of breaking checkpoint backward compatibility in some cases. If you want to keep using an old checkpoint, please change your optimizer to tf.keras.optimizer.legacy.XXX (e.g. tf.keras.optimizer.legacy.Adam).
+
+TF1 compatibility. The new optimizer, tf.keras.optimizers.Optimizer, does not support TF1 any more, so please use the legacy optimizer tf.keras.optimizer.legacy.XXX. We highly recommend migrating your workflow to TF2 for stable support and new features.
+
+Old optimizer API not found. The new optimizer, tf.keras.optimizers.Optimizer, has a different set of public APIs from the old optimizer. These API changes are mostly related to getting rid of slot variables and TF1 support. Please check the API documentation to find alternatives to the missing API. If you must call the deprecated API, please change your optimizer to the legacy optimizer.
+
+Learning rate schedule access. When using a tf.keras.optimizers.schedules.LearningRateSchedule, the new optimizer's learning_rate property returns the current learning rate value instead of a LearningRateSchedule object as before. If you need to access the LearningRateSchedule object, please use optimizer._learning_rate.
+
+If you implemented a custom optimizer based on the old optimizer. Please set your optimizer to subclass tf.keras.optimizer.legacy.XXX. If you want to migrate to the new optimizer and find it does not support your optimizer, please file an issue in the Keras GitHub repo.
+
+Errors, such as Cannot recognize variable.... The new optimizer requires all optimizer variables to be created at the first apply_gradients() or minimize() call. If your workflow calls the optimizer to update different parts of the model in multiple stages, please call optimizer.build(model.trainable_variables) before the training loop.
+
+Timeout or performance loss. We don't anticipate this to happen, but if you see such issues, please use the legacy optimizer, and file an issue in the Keras GitHub repo.
+
+The old Keras optimizer will never be deleted, but will not see any new feature additions. New optimizers (for example, tf.keras.optimizers.Adafactor) will only be implemented based on the new tf.keras.optimizers.Optimizer base class.
+
+tensorflow/python/keras code is a legacy copy of Keras since the TensorFlow v2.7 release, and will be deleted in the v2.12 release. Please remove any import of tensorflow.python.keras and use the public API with from tensorflow import keras or import tensorflow as tf; tf.keras.
 
 If you want to learn more, please have a look at our [book](https://learning.oreilly.com/library/view/whats-new-in/9781492073727/)
 
